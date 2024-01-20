@@ -1,0 +1,51 @@
+# Whisper fine-tuning config for ROCm / AMD GPUs
+# Tested on Radeon VII (16GB HBM2) and RX 6800 XT
+
+model:
+  name: "openai/whisper-base"
+  language: "en"
+  task: "transcribe"
+
+training:
+  output_dir: "./outputs/whisper-finetuned"
+  num_epochs: 10
+  per_device_train_batch_size: 8
+  per_device_eval_batch_size: 4
+  gradient_accumulation_steps: 2
+  learning_rate: 1e-5
+  warmup_steps: 500
+  weight_decay: 0.01
+  fp16: true                    # ROCm supports fp16 on Vega+
+  gradient_checkpointing: true  # saves VRAM, essential on 16GB
+  save_steps: 500
+  eval_steps: 500
+  logging_steps: 50
+  max_steps: -1
+  dataloader_num_workers: 4
+
+data:
+  dataset_name: "librispeech_asr"
+  dataset_config: "clean"
+  train_split: "train.100"
+  eval_split: "validation"
+  audio_column_name: "audio"
+  text_column_name: "text"
+  max_duration_in_seconds: 30.0
+  min_duration_in_seconds: 1.0
+
+preprocessing:
+  sampling_rate: 16000
+  num_proc: 4
+
+# ROCm-specific workarounds
+rocm:
+  hip_visible_devices: "0"
+  hsa_override_gfx_version: "10.3.0"   # Vega VII / RDNA1
+  use_flash_attention: false            # ROCm flash-attn is flaky
+  mem_efficient_attention: true
+  compile_model: false                  # torch.compile can be weird on ROCm
+
+evaluation:
+  metric: "wer"
+  language: "en"
+  max_new_tokens: 128
