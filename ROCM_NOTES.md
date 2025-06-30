@@ -9,7 +9,6 @@
 
 ## Current Blockers
 
-- No ROCm CI runner available — all Whisper/TTS validation done manually on local Radeon VII
 - Whisper's `flash_attention_2` kernel doesn't compile cleanly on ROCm — falling back to standard attention
 - Coqui TTS vocoder (HiFi-GAN) has a custom CUDA kernel that needs ROCm porting; currently running via PyTorch fallback
 
